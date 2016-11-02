@@ -10,6 +10,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.Random;
 import java.util.Scanner;
+import weka.classifiers.Classifier;
 
 import weka.classifiers.Evaluation;
 import weka.classifiers.bayes.NaiveBayes;
@@ -73,26 +74,29 @@ public class WekaExploration{
         SerializationHelper.write(f+".model", nB);
     }
     
-    public void readModel(){
-        
+    public Classifier readModel(Instances current, String f) throws FileNotFoundException, Exception {
+        Classifier cls = (Classifier) SerializationHelper.read(f+".model");     
+        return cls;
     }
     
-    /**
-     * @param args the command line arguments
-     * @throws java.io.FileNotFoundException
-     */
      public static void main(String[] args) throws Exception {
         WekaExploration wk = new WekaExploration();
         Discretize filter = new Discretize();
         Scanner in = new Scanner(System.in);
+        int run = 0;
+        int end = 0;
         
+        System.out.println("Pada program ini, dataset yang dibaca ialah \'iris.arff\' dan menggunakan filter Supervised Discretized.\n");
+        
+        while (end==0) {
         wk.readInstances();
         Instances irisDiscretized = wk.getDiscretized();
-        System.out.println("Pada program ini, dataset yang dibaca ialah \'iris.arff\' dan menggunakan filter Supervised Discretized.\n");
         System.out.println("Apa yang ingin Anda lakukan?");
         System.out.println("1. Tampilkan hasil Full Training");
         System.out.println("2. Tampilkan hasil 10 Fold Cross Validation");
         System.out.println("3. Simpan model");
+        System.out.println("4. Baca model");
+        System.out.println("5. Keluar");
         System.out.print("Pilihan Anda: ");
         int c;
         c = in.nextInt();
@@ -101,20 +105,40 @@ public class WekaExploration{
         switch (c) {
             case 1:
                 wk.fullTraining(irisDiscretized);
+                run = 1;
                 break;
             case 2:
                 wk.tenCrossValidate(irisDiscretized);
+                run = 1;
                 break;
             case 3:
+                if (run==0) {
+                    System.out.println("Anda belum menampilkan dataset");
+                    System.out.println();
+                }
                 System.out.print("Tulis nama berkasnya (*.model): ");
                 String filename;
                 filename = in.next();
                 wk.saveModel(irisDiscretized, filename);
                 System.out.println(filename+".model sudah tersimpan");
+                System.out.println();
+                break;
+            case 4 :
+                System.out.print("Masukkan nama model yang ingin dibaca : ");
+                String filenames;
+                filenames = in.next();
+                wk.readModel(irisDiscretized, filenames);
+                System.out.println(filenames+".model berhasil dibaca");
+                System.out.println();
+                break;
+            case 5 :
+                end = 1;
+                System.out.println("Terima kasih");
                 break;
             default:
                 System.out.println("Pilihan tidak tersedia");
                 break;
+        }
         }
         
     }   
