@@ -74,9 +74,16 @@ public class WekaExploration{
         
         wk.readInstances();
         Instances irisDiscretized = wk.getDiscretized();
-        
+        System.out.println("Pada program ini, dataset yang dibaca ialah \'iris.arff\' dan menggunakan filter Supervised Discretized.\n");
+        System.out.println("Apa yang ingin Anda lakukan?");
+        System.out.println("1. Tampilkan hasil Full Training");
+        System.out.println("2. Tampilkan hasil 10 Fold Cross Validation");
+        System.out.print("Pilihan Anda: ");
+        int c;
+        c = in.nextInt();
+        System.out.println();
         //wk.visualize(irisDiscretized);
-        wk.tenCrossValidate(irisDiscretized);
-        wk.fullTraining(irisDiscretized);
+        if(c==2) wk.tenCrossValidate(irisDiscretized);
+        else if(c==1) wk.fullTraining(irisDiscretized);
     }   
 }
