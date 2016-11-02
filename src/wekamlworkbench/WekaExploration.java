@@ -14,6 +14,8 @@ import weka.classifiers.Classifier;
 
 import weka.classifiers.Evaluation;
 import weka.classifiers.bayes.NaiveBayes;
+import weka.core.DenseInstance;
+import weka.core.Instance;
 import weka.core.Instances;
 import weka.core.SerializationHelper;
 import weka.filters.Filter;
@@ -26,6 +28,7 @@ import weka.filters.supervised.attribute.Discretize;
 public class WekaExploration{
     Instances iris;
     Evaluation eval;
+    Scanner in = new Scanner(System.in);
     
     public void readInstances() throws FileNotFoundException, IOException, Exception{
         try (BufferedReader b = new BufferedReader(new FileReader ("C:/Program Files/Weka-3-8/data/iris.arff"))) {
@@ -81,12 +84,26 @@ public class WekaExploration{
             System.out.println("\nModel yang terbaca\n==================\n"+cls.toString());
         }
         catch (FileNotFoundException e){
-            System.out.println("File "+f+".model tidak ditemukan\n");
+            System.out.println("Berkas "+f+".model tidak ditemukan\n");
         }
     }
     
+    public void addInstances(Instances inst){
+        Instance newInst;
+        newInst = new DenseInstance(inst.numAttributes());
+        double value;
+        int choice;
+        String[] attrname = {"sepallength","sepalwidth","petallength","petalwidth"};
+        for(int i = 0; i < inst.numAttributes()-1; i++){
+            System.out.print(attrname[i]+": ");
+            value = in.nextDouble();
+            newInst.setValue(i, value);
+        }
+        
+        inst.add(newInst);
+    }
+    
     public void askToSave(Instances i) throws Exception{
-        Scanner in = new Scanner(System.in);
         System.out.print("Tulis nama berkasnya (*.model): ");
         String filename;
         filename = in.next();
@@ -98,20 +115,20 @@ public class WekaExploration{
     public static void main(String[] args) throws Exception {
         WekaExploration wk = new WekaExploration();
         Discretize filter = new Discretize();
-        Scanner in = new Scanner(System.in);
         int end = 0;
         String save;
-        
+        Scanner in = new Scanner(System.in);
+        wk.readInstances();
+        Instances irisDiscretized = wk.getDiscretized();
         System.out.println("Pada program ini, dataset yang dibaca ialah \'iris.arff\' dan menggunakan filter Supervised Discretized.\n");
         
         while (end==0) {
-        wk.readInstances();
-        Instances irisDiscretized = wk.getDiscretized();
         System.out.println("Apa yang ingin Anda lakukan?");
         System.out.println("1. Tampilkan hasil Full Training");
         System.out.println("2. Tampilkan hasil 10 Fold Cross Validation");
         System.out.println("3. Baca model");
-        System.out.println("4. Keluar");
+        System.out.println("4. Menyisipkan sebuah instance ke dalam dataset");
+        System.out.println("5. Keluar");
         System.out.print("Pilihan Anda: ");
         int c;
         c = in.nextInt();
@@ -136,7 +153,12 @@ public class WekaExploration{
                 filenames = in.next();
                 wk.readModel(irisDiscretized, filenames);
                 break;
-            case 4 :
+            case 4:
+                System.out.println("Masukkan instance berikut\n===========");
+                wk.addInstances(irisDiscretized);
+                System.out.println("\nInstance berhasil dimasukkan\n");
+                break;
+            case 5 :
                 end = 1;
                 System.out.println("Terima kasih");
                 break;
