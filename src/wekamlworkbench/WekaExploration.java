@@ -1,18 +1,10 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package wekamlworkbench;
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.util.Random;
 import java.util.Scanner;
-import weka.core.converters.ConverterUtils.DataSource;
 import weka.classifiers.Classifier;
 
 import weka.classifiers.Evaluation;
@@ -24,10 +16,6 @@ import weka.core.SerializationHelper;
 import weka.filters.Filter;
 import weka.filters.supervised.attribute.Discretize;
 
-/**
- *
- * @author user
- */
 public class WekaExploration{
     Instances iris;
     Evaluation eval;
@@ -36,8 +24,8 @@ public class WekaExploration{
     
     public void readInstances() throws FileNotFoundException, IOException, Exception{
         BufferedReader b = new BufferedReader(new FileReader ("C:/Program Files/Weka-3-8/data/iris.arff"));
-            iris = new Instances (b);
-            iris.setClassIndex(iris.numAttributes()-1);
+        iris = new Instances (b);
+        iris.setClassIndex(iris.numAttributes()-1);
         
     }
    
@@ -58,7 +46,6 @@ public class WekaExploration{
         System.out.println("##10 FOLDS CROSS VALIDATION##");
         System.out.println(eval.toSummaryString("\nRingkasan\n=========", true));
         System.out.println(eval.toMatrixString("\nMatriks\n======="));
-        //System.out.println(eval.fMeasure(1)+" "+eval.precision(1)+" "+eval.recall(1));
     }
     
     
@@ -143,7 +130,6 @@ public class WekaExploration{
         int c;
         c = in.nextInt();
         System.out.println();
-        //wk.visualize(irisDiscretized);
         switch (c) {
             case 1:
                 wk.fullTraining(irisDiscretized);
