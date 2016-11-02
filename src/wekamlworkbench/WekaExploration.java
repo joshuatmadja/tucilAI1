@@ -14,6 +14,7 @@ import java.util.Scanner;
 import weka.classifiers.Evaluation;
 import weka.classifiers.bayes.NaiveBayes;
 import weka.core.Instances;
+import weka.core.SerializationHelper;
 import weka.filters.Filter;
 import weka.filters.supervised.attribute.Discretize;
 
@@ -60,9 +61,22 @@ public class WekaExploration{
         nB.buildClassifier(i);
         eval.evaluateModel(nB, i);
         System.out.println("##FULL TRAINING##");
+        System.out.println(eval.toClassDetailsString("\nRincian\n======="));
         System.out.println(eval.toSummaryString("\nRingkasan\n=========", true));
         System.out.println(eval.toMatrixString("\nMatriks\n======="));
     }
+    
+    public void saveModel(Instances i, String f) throws Exception{
+        eval = new Evaluation(i);
+        NaiveBayes nB = new NaiveBayes();
+        nB.buildClassifier(i);
+        SerializationHelper.write(f+".model", nB);
+    }
+    
+    public void readModel(){
+        
+    }
+    
     /**
      * @param args the command line arguments
      * @throws java.io.FileNotFoundException
@@ -78,12 +92,30 @@ public class WekaExploration{
         System.out.println("Apa yang ingin Anda lakukan?");
         System.out.println("1. Tampilkan hasil Full Training");
         System.out.println("2. Tampilkan hasil 10 Fold Cross Validation");
+        System.out.println("3. Simpan model");
         System.out.print("Pilihan Anda: ");
         int c;
         c = in.nextInt();
         System.out.println();
         //wk.visualize(irisDiscretized);
-        if(c==2) wk.tenCrossValidate(irisDiscretized);
-        else if(c==1) wk.fullTraining(irisDiscretized);
+        switch (c) {
+            case 1:
+                wk.fullTraining(irisDiscretized);
+                break;
+            case 2:
+                wk.tenCrossValidate(irisDiscretized);
+                break;
+            case 3:
+                System.out.print("Tulis nama berkasnya (*.model): ");
+                String filename;
+                filename = in.next();
+                wk.saveModel(irisDiscretized, filename);
+                System.out.println(filename+".model sudah tersimpan");
+                break;
+            default:
+                System.out.println("Pilihan tidak tersedia");
+                break;
+        }
+        
     }   
 }
