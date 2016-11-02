@@ -94,7 +94,8 @@ public class WekaExploration{
         System.out.println(filename+".model sudah tersimpan");
         System.out.println();
     }
-     public static void main(String[] args) throws Exception {
+    
+    public static void main(String[] args) throws Exception {
         WekaExploration wk = new WekaExploration();
         Discretize filter = new Discretize();
         Scanner in = new Scanner(System.in);
@@ -119,13 +120,13 @@ public class WekaExploration{
         switch (c) {
             case 1:
                 wk.fullTraining(irisDiscretized);
-                System.out.print("Apakah anda ingin menyimpan model ini? (y/n):");
+                System.out.print("Apakah anda ingin menyimpan model ini? (y/n): ");
                 save = in.next();
                 if(save.equals("y") || save.equals("Y"))  wk.askToSave(irisDiscretized);
                 break;
             case 2:
                 wk.tenCrossValidate(irisDiscretized);
-                System.out.print("Apakah anda ingin menyimpan model ini? (y/n):");
+                System.out.print("Apakah anda ingin menyimpan model ini? (y/n): ");
                 save = in.next();
                 if(save.equals("y") || save.equals("Y"))  wk.askToSave(irisDiscretized);
                 break;
@@ -140,7 +141,7 @@ public class WekaExploration{
                 System.out.println("Terima kasih");
                 break;
             default:
-                System.out.println("Pilihan tidak tersedia");
+                System.out.println("Pilihan tidak tersedia. Ulangi lagi.\n");
                 break;
         }
         }
