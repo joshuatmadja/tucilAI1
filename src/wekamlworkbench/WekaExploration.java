@@ -74,17 +74,32 @@ public class WekaExploration{
         SerializationHelper.write(f+".model", nB);
     }
     
-    public Classifier readModel(Instances current, String f) throws FileNotFoundException, Exception {
-        Classifier cls = (Classifier) SerializationHelper.read(f+".model");     
-        return cls;
+    public void readModel(Instances current, String f) throws FileNotFoundException, Exception {
+        try{  
+            Classifier cls = (Classifier) SerializationHelper.read(f+".model");
+            System.out.println(f+".model berhasil dibaca\n");
+            System.out.println("\nModel yang terbaca\n==================\n"+cls.toString());
+        }
+        catch (FileNotFoundException e){
+            System.out.println("File "+f+".model tidak ditemukan\n");
+        }
     }
     
+    public void askToSave(Instances i) throws Exception{
+        Scanner in = new Scanner(System.in);
+        System.out.print("Tulis nama berkasnya (*.model): ");
+        String filename;
+        filename = in.next();
+        saveModel(i, filename);
+        System.out.println(filename+".model sudah tersimpan");
+        System.out.println();
+    }
      public static void main(String[] args) throws Exception {
         WekaExploration wk = new WekaExploration();
         Discretize filter = new Discretize();
         Scanner in = new Scanner(System.in);
-        int run = 0;
         int end = 0;
+        String save;
         
         System.out.println("Pada program ini, dataset yang dibaca ialah \'iris.arff\' dan menggunakan filter Supervised Discretized.\n");
         
@@ -94,9 +109,8 @@ public class WekaExploration{
         System.out.println("Apa yang ingin Anda lakukan?");
         System.out.println("1. Tampilkan hasil Full Training");
         System.out.println("2. Tampilkan hasil 10 Fold Cross Validation");
-        System.out.println("3. Simpan model");
-        System.out.println("4. Baca model");
-        System.out.println("5. Keluar");
+        System.out.println("3. Baca model");
+        System.out.println("4. Keluar");
         System.out.print("Pilihan Anda: ");
         int c;
         c = in.nextInt();
@@ -105,33 +119,23 @@ public class WekaExploration{
         switch (c) {
             case 1:
                 wk.fullTraining(irisDiscretized);
-                run = 1;
+                System.out.print("Apakah anda ingin menyimpan model ini? (y/n):");
+                save = in.next();
+                if(save.equals("y") || save.equals("Y"))  wk.askToSave(irisDiscretized);
                 break;
             case 2:
                 wk.tenCrossValidate(irisDiscretized);
-                run = 1;
+                System.out.print("Apakah anda ingin menyimpan model ini? (y/n):");
+                save = in.next();
+                if(save.equals("y") || save.equals("Y"))  wk.askToSave(irisDiscretized);
                 break;
-            case 3:
-                if (run==0) {
-                    System.out.println("Anda belum menampilkan dataset");
-                    System.out.println();
-                }
-                System.out.print("Tulis nama berkasnya (*.model): ");
-                String filename;
-                filename = in.next();
-                wk.saveModel(irisDiscretized, filename);
-                System.out.println(filename+".model sudah tersimpan");
-                System.out.println();
-                break;
-            case 4 :
-                System.out.print("Masukkan nama model yang ingin dibaca : ");
+            case 3 :
+                System.out.print("Masukkan nama model yang ingin dibaca (*.model): ");
                 String filenames;
                 filenames = in.next();
                 wk.readModel(irisDiscretized, filenames);
-                System.out.println(filenames+".model berhasil dibaca");
-                System.out.println();
                 break;
-            case 5 :
+            case 4 :
                 end = 1;
                 System.out.println("Terima kasih");
                 break;
