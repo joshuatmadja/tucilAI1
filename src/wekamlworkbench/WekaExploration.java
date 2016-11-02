@@ -8,12 +8,15 @@ import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.Random;
 import java.util.Scanner;
+import weka.core.converters.ConverterUtils.DataSource;
 import weka.classifiers.Classifier;
 
 import weka.classifiers.Evaluation;
-import weka.classifiers.bayes.NaiveBayes;
+import weka.classifiers.trees.J48;
 import weka.core.DenseInstance;
 import weka.core.Instance;
 import weka.core.Instances;
@@ -29,12 +32,13 @@ public class WekaExploration{
     Instances iris;
     Evaluation eval;
     Scanner in = new Scanner(System.in);
+    J48 pohon = new J48();
     
     public void readInstances() throws FileNotFoundException, IOException, Exception{
-        try (BufferedReader b = new BufferedReader(new FileReader ("C:/Program Files/Weka-3-8/data/iris.arff"))) {
+        BufferedReader b = new BufferedReader(new FileReader ("C:/Program Files/Weka-3-8/data/iris.arff"));
             iris = new Instances (b);
             iris.setClassIndex(iris.numAttributes()-1);
-        }
+        
     }
    
     public Instances getDiscretized() throws Exception{
@@ -48,10 +52,9 @@ public class WekaExploration{
     }
     
     public void tenCrossValidate(Instances i) throws Exception{
+        pohon.buildClassifier(i);
         eval = new Evaluation(i);
-        NaiveBayes nB = new NaiveBayes();
-        nB.buildClassifier(i);
-        eval.crossValidateModel(nB, i, 10, new Random(1));
+        eval.crossValidateModel(pohon, i, 10, new Random(1));
         System.out.println("##10 FOLDS CROSS VALIDATION##");
         System.out.println(eval.toSummaryString("\nRingkasan\n=========", true));
         System.out.println(eval.toMatrixString("\nMatriks\n======="));
@@ -60,10 +63,9 @@ public class WekaExploration{
     
     
     public void fullTraining(Instances i) throws Exception{
+        pohon.buildClassifier(i);
         eval = new Evaluation(i);
-        NaiveBayes nB = new NaiveBayes();
-        nB.buildClassifier(i);
-        eval.evaluateModel(nB, i);
+        eval.evaluateModel(pohon, i);
         System.out.println("##FULL TRAINING##");
         System.out.println(eval.toClassDetailsString("\nRincian\n======="));
         System.out.println(eval.toSummaryString("\nRingkasan\n=========", true));
@@ -72,34 +74,34 @@ public class WekaExploration{
     
     public void saveModel(Instances i, String f) throws Exception{
         eval = new Evaluation(i);
-        NaiveBayes nB = new NaiveBayes();
-        nB.buildClassifier(i);
-        SerializationHelper.write(f+".model", nB);
+        pohon = new J48();
+        pohon.buildClassifier(i);
+        SerializationHelper.write(f+".model", pohon);
     }
     
-    public void readModel(Instances current, String f) throws FileNotFoundException, Exception {
+    public Classifier readModel(Instances current, String f) throws FileNotFoundException, Exception {
+        Classifier cls = null;
         try{  
-            Classifier cls = (Classifier) SerializationHelper.read(f+".model");
+            cls = (Classifier) SerializationHelper.read(f+".model");
             System.out.println(f+".model berhasil dibaca\n");
             System.out.println("\nModel yang terbaca\n==================\n"+cls.toString());
         }
         catch (FileNotFoundException e){
             System.out.println("Berkas "+f+".model tidak ditemukan\n");
         }
+        return cls;
     }
     
     public void addInstances(Instances inst){
         Instance newInst;
-        newInst = new DenseInstance(inst.numAttributes());
-        double value;
-        int choice;
+        double newinstance[] = new double[inst.numAttributes()];
         String[] attrname = {"sepallength","sepalwidth","petallength","petalwidth"};
         for(int i = 0; i < inst.numAttributes()-1; i++){
             System.out.print(attrname[i]+": ");
-            value = in.nextDouble();
-            newInst.setValue(i, value);
+            double value = in.nextDouble();
+            newinstance[i]=value;
         }
-        
+        newInst = new DenseInstance(1.0, newinstance);
         inst.add(newInst);
     }
     
@@ -109,20 +111,28 @@ public class WekaExploration{
         filename = in.next();
         saveModel(i, filename);
         System.out.println(filename+".model sudah tersimpan");
-        System.out.println();
+        System.out.println("\n");
+    }
+    
+    public void classifyInstance(Instances i) throws Exception{
+        double classIndex = pohon.classifyInstance(i.lastInstance());
+        int lastIdx = i.numAttributes()-1;
+        String classN = i.attribute(lastIdx).value( (int) classIndex);
+        i.instance(i.numInstances()-1).setClassValue(classN);
+        System.out.println(i.lastInstance()+"\n");
     }
     
     public static void main(String[] args) throws Exception {
         WekaExploration wk = new WekaExploration();
-        Discretize filter = new Discretize();
+        boolean built=false;
         int end = 0;
         String save;
         Scanner in = new Scanner(System.in);
         wk.readInstances();
-        Instances irisDiscretized = wk.getDiscretized();
         System.out.println("Pada program ini, dataset yang dibaca ialah \'iris.arff\' dan menggunakan filter Supervised Discretized.\n");
         
         while (end==0) {
+        Instances irisDiscretized = wk.getDiscretized();
         System.out.println("Apa yang ingin Anda lakukan?");
         System.out.println("1. Tampilkan hasil Full Training");
         System.out.println("2. Tampilkan hasil 10 Fold Cross Validation");
@@ -137,26 +147,36 @@ public class WekaExploration{
         switch (c) {
             case 1:
                 wk.fullTraining(irisDiscretized);
+                built=true;
                 System.out.print("Apakah anda ingin menyimpan model ini? (y/n): ");
                 save = in.next();
                 if(save.equals("y") || save.equals("Y"))  wk.askToSave(irisDiscretized);
+                System.out.println();
                 break;
             case 2:
                 wk.tenCrossValidate(irisDiscretized);
+                built=true;
                 System.out.print("Apakah anda ingin menyimpan model ini? (y/n): ");
                 save = in.next();
                 if(save.equals("y") || save.equals("Y"))  wk.askToSave(irisDiscretized);
+                System.out.println();
                 break;
             case 3 :
                 System.out.print("Masukkan nama model yang ingin dibaca (*.model): ");
                 String filenames;
                 filenames = in.next();
-                wk.readModel(irisDiscretized, filenames);
+                wk.pohon = (J48) wk.readModel(irisDiscretized, filenames);
                 break;
             case 4:
+                if(!built){
+                    wk.fullTraining(wk.iris);
+                    built=true;
+                }
                 System.out.println("Masukkan instance berikut\n===========");
-                wk.addInstances(irisDiscretized);
+                wk.addInstances(wk.iris);
                 System.out.println("\nInstance berhasil dimasukkan\n");
+                System.out.print("Klasifikasi instance baru: ");
+                wk.classifyInstance(wk.iris);
                 break;
             case 5 :
                 end = 1;
